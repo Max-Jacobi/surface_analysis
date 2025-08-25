@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "surface"
+version = "0.0.1"
+description = "Routines to post-process surface dumps from GRAthena++"
+authors = [
+    { name = "Maximilian Jacobi", email = "maximilian.jacobi@uni-jena.de" }
+]
+license = { text = "MIT" }
+requires-python = ">=3.12"
+
+dependencies = [
+    "numpy",
+    "h5py",
+    "tqdm",
+    "tabulatedEOS @ git+https://github.com/max-jacobi/tabulatedEOS@642d6b1"
+]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
