@@ -37,7 +37,8 @@ def do_parallel[R](
     with Pool(n_cpu) as pool:
         if ordered:
             yield from tqdm(pool.imap(func_args, itr), **kwargs)
-        yield from tqdm(pool.imap_unordered(func_args, itr), **kwargs)
+        else:
+            yield from tqdm(pool.imap_unordered(func_args, itr), **kwargs)
 
 def _index_then_apply[T, R](ix_x: tuple[int, T], func: Callable[..., R], tail: tuple[Any, ...]) -> tuple[int, R]:
     i, x = ix_x
