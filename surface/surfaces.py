@@ -35,10 +35,15 @@ class Surfaces(Mapping):
     def _parse_files(self):
         times = []
         self.r = np.nan
-        self.files = np.array([f'{path}/{f}'
-                               for path in self.paths
-                               for f in os.listdir(path)
-                               if f".surface{self.i_s}." in f])
+        self.files = [f'{path}/{f}' for path in self.paths
+                      for f in os.listdir(path)
+                      if f".surface{self.i_s}." in f]
+
+        # get rid of duplicate surface files due to restarts overlapping
+        self.files.sort(key=os.path.getmtime)
+        fnames = [f.split('/')[-1] for f in self.files]
+        _, isort = np.unique(fnames, return_index=True)
+        self.files = np.array(self.files)[isort]
 
         for _r, _t, _ph, _th, _fields in do_parallel(
             parse_h5,
@@ -61,11 +66,13 @@ class Surfaces(Mapping):
                 assert np.isclose(_th, th).all(), 'detected changing theta'
                 assert all(k in self.fields for k in _fields), 'detected changing fields'
             times.append(_t)
-        isort = np.argsort(times)
+        _, isort = np.unique(np.round(times, 8), return_index=True)
         self.files = self.files[isort]
         self.times = np.array(times)[isort]
+
         dt = np.diff(self.times)
-        assert np.all(np.isclose(dt, dt[0])), 'detected changing surface output dt'
+        assert np.all(dt > 1e-6), 'how can there still be repeating times?'
+        assert np.all(np.isclose(dt, dt[0])), f'detected changing surface output dt:\n{dt}\n{self.files}'
         dt = dt[0]
         dth, dph = th[1] - th[0], ph[1] - ph[0]
         m_th, m_ph = np.meshgrid(th, ph, indexing='ij')
