@@ -426,7 +426,7 @@ def ejecta(
     crit: None | str | SurfaceFunc[Scalar] = None,
     out: bool = False,
     **kwargs
-    ) -> DerivedSurfaceFunc[Histogram]:
+    ) -> DerivedSurfaceFunc[Histogram3D]:
     name = f"Ejecta.h5"
     return DerivedSurfaceFunc(
         _hist3d,

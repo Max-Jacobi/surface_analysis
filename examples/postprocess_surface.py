@@ -89,14 +89,30 @@ bins = {
     "th": np.linspace(0, np.pi, len(s.aux["th"])+1),
     }
 
-ejecta_bins = (
-    np.array([0.0, 0.025, 0.055, 0.085, 0.115, 0.145, 0.175, 0.205, 0.235, 0.27,
-        0.305, 0.335, 0.365, 0.395, 0.425, 0.455, 0.485, .515]),
-    np.array([0.0, 1.15, 1.55, 2.1, 2.8, 3.7, 4.9, 6.55, 8.75, 11.5, 15.5, 21.,
-        28., 37., 49., 65.5, 87.5, 125]),
-    np.array([0.0, 0.135, 0.230, 0.390, 0.665, 1.12, 1.90, 3.30, 5.65, 9.55,
-        16.5, 28.0, 47.0, 79.5, 135, 230, 395, 605])
-    )
+msol_to_ms = 0.004925490948309319
+
+# copied from outflowed.cc
+def make_bin_from_centers(c: np.ndarray) -> np.ndarray:
+    assert c.size > 1, "Need at least two centers"
+    b = np.empty(c.size + 1, dtype=c.dtype)
+    delta = c[1] - c[0]
+    b[0] = c[0] - 0.5 * delta
+    for i in range(1, c.size):
+        b[i] = c[i-1] + 0.5 * delta
+        delta = c[i] - c[i-1]
+    b[-1] = c[-1] + 0.5 * delta
+    return b
+
+# copied from runs-thc-ba:analysis/ejecta/skynet/grid.h5
+ej_ye = np.array((0.01, 0.04, 0.07, 0.1, 0.13, 0.16, 0.19, 0.22, 0.25, 
+    0.29, 0.32, 0.35, 0.38, 0.41, 0.44, 0.47, 0.5))
+ej_s = np.array((1, 1.3, 1.8, 2.4, 3.2, 4.2, 5.6, 7.5, 10, 13, 18, 24,
+    32, 42, 56, 75, 100))
+ej_tau = np.array((0.1, 0.17, 0.29, 0.49, 0.84, 1.4, 2.4, 4.2, 7.1, 12, 
+    21, 35, 59, 100, 170, 290, 500))/msol_to_ms
+
+ejecta_bins = tuple(make_bin_from_centers(ej) for ej in (ej_ye, ej_s, ej_tau))
+
 ################################################################################
 
 def _check_extra(f: str, crit: str) -> str | sf.SurfaceFunc:
@@ -133,7 +149,7 @@ for crit in args.criteria:
         _f = _check_extra(f, crit)
         surf_funcs[f"hist_{f}_{crit}"] = sf.mass_histogram(_f, out=out, crit=cr, bins=bins[f])
     if args.ejecta:
-        surf_funcs[f"ejecta_{crit}"] = sf.ejecta(temp_bt, bins=ejecta_bins, out=out, crit=cr)
+        surf_funcs[f"ejecta_{crit}"] = sf.ejecta(temp_bt, bins=ejecta_bins, out=out, crit=cr, eos=s.eos)
 
 if args.nu_luminosities:
     for inu in range(3):
@@ -152,11 +168,16 @@ for raw_data in s.process_h5_parallel((all_funcs,), ordered=True):
         data[k].append(d)
 
 for c in args.criteria:
-    data[f"mej_{c}"] = np.cumsum(data[f"sc_mdot_{c}"])*dt
+    if args.mass_ejection:
+        data[f"sc_mej_{c}"] = np.cumsum(data[f"sc_mdot_{c}"])*dt
 
     for h in args.histograms:
         hist, bin_edges = zip(*data[f"hist_{h}_{c}"])
         data[f"hist_{h}_{c}_cum"] = sum(hist), bin_edges[0]
+
+    if args.ejecta:
+        hist, bin_edges = zip(*data[f"ejecta_{c}"])
+        data[f"ejecta_{c}_cum"] = sum(hist), bin_edges[0]
 
 
 ################################################################################
@@ -187,12 +208,13 @@ for h in hists:
 
 if args.ejecta:
   for crit in args.criteria:
-    mass, (ye_bins, s_bins, tau_bins) = data[f"ejecta_{crit}"]
-    ye = (ye_bins[1:] + ye_bins[-1:])/2
-    s = (s_bins[1:] + s_bins[-1:])/2
-    tau = (tau_bins[1:] + tau_bins[-1:])/2
+    try:
+        mass, _ = data[f"ejecta_{crit}_cum"]
+    except ValueError:
+        print(len(data[f"ejecta_{crit}"]))
+        raise
     with File(f"{args.outputpath}/ejecta_{crit}.h5", "w") as hf:
         hf['mass'] = mass
-        hf['Ye'] = ye
-        hf['entropy'] = s
-        hf['tau'] = tau
+        hf['Ye'] = ej_ye
+        hf['entropy'] = ej_s
+        hf['tau'] = ej_tau
