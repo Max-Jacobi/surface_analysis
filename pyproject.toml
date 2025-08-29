@@ -16,7 +16,7 @@ dependencies = [
     "numpy",
     "h5py",
     "tqdm",
-    "tabulatedEOS @ git+https://github.com/max-jacobi/tabulatedEOS@642d6b1"
+    "tabulatedEOS @ git+https://github.com/max-jacobi/tabulatedEOS@36bb61ddafffac0cce972f7231502a38368018ec"
 ]
 
 [tool.setuptools]
