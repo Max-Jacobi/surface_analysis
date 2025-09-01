@@ -70,10 +70,15 @@ class Surfaces(Mapping):
         self.files = self.files[isort]
         self.times = np.array(times)[isort]
 
+        # dt should be step centered but sum up to total time
+        # so we weight start and end times only by factor 1/2
         dt = np.diff(self.times)
-        assert np.all(dt > 1e-6), 'how can there still be repeating times?'
-        assert np.all(np.isclose(dt, dt[0])), f'detected changing surface output dt:\n{dt}\n{self.files}'
-        dt = dt[0]
+        self.dts = np.zeros_like(self.times)
+        self.dts[1:-1] = (dt[1:] + dt[:-1])/2
+        self.dts[0] = dt[0]/2
+        self.dts[-1] = dt[-1]/2
+
+        assert np.all(self.dts > 1e-6), 'how can there still be repeating times?'
         dth, dph = th[1] - th[0], ph[1] - ph[0]
         m_th, m_ph = np.meshgrid(th, ph, indexing='ij')
         dA = self.r * self.r * np.sin(m_th) * dth * dph
@@ -81,11 +86,10 @@ class Surfaces(Mapping):
         y = self.r * np.sin(m_th) * np.sin(m_ph)
         z = self.r * np.cos(m_th)
         r = np.full_like(x, self.r)
-        dt = np.full_like(x, dt)
 
         self.aux = {"x": x, "y": y, "z": z,
                     "r": r, "ph": m_ph, "th": m_th,
-                    "dA": dA, "dt": dt}
+                    "dA": dA}
 
         self.shape = (len(self.times), *x.shape)
 
@@ -161,13 +165,14 @@ class Surfaces(Mapping):
         inputs = tuple(tuple(self.complete_input(k) for k in func.keys) for func in _funcs)
         return do_parallel(
             apply_func_to_h5,
-            self.files,
+            zip(self.files, self.times, self.dts),
             n_cpu=self.n_cpu,
             args=(inputs, self.aux, _funcs,),
             verbose=self.verbose,
             desc=f'Calculating {" ".join([func.name for func in _funcs])}',
             unit='files',
             ordered=ordered,
+            total=len(self.files),
             )
 
     def sphere_flux(self, v_u: Iterable[np.ndarray]) -> np.ndarray:

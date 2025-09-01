@@ -22,7 +22,6 @@ def do_parallel[R](
 ) -> Iterable[R]:
     if isinstance(itr, Sized):
         kwargs["total"] = len(itr)
-    kwargs.setdefault("leave", False)
     kwargs.setdefault("disable", not verbose)
     kwargs.setdefault("ncols", 0)
     kwargs.setdefault("file", stdout)

@@ -35,11 +35,15 @@ def load_h5_many(path: str, dsets: tuple[str, ...]) -> tuple[np.ndarray, ...]:
         return tuple(np.array(hf[dset]) for dset in dsets)
 
 def apply_func_to_h5[T](
-    path: str,
+    path_t_dt: tuple[str, float, float],
     dsets: tuple[tuple[str, ...], ...],
     alt: dict[str, np.ndarray],
     funcs: tuple[SurfaceFunc[T], ...],
 ) -> tuple[T, ...]:
+    path, t, dt = path_t_dt
+    # These should be passed as copies to each worker so no thread safety issues here
+    alt['time'] = np.array([[t]])
+    alt['dt'] = np.array([[dt]])
     all_keys = tuple(set(sum(dsets, start=())))
     alt_args = {k: alt[k] for k in all_keys if k in alt}
     file_keys = tuple(k for k in all_keys if k not in alt)
