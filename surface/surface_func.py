@@ -451,6 +451,7 @@ nu0_e = DerivedSurfaceFunc(truediv, (nu0_lum, nu0_nlum), 'e_nu0')
 nu1_e = DerivedSurfaceFunc(truediv, (nu1_lum, nu1_nlum), 'e_nu1')
 nu2_e = DerivedSurfaceFunc(truediv, (nu2_lum, nu2_nlum), 'e_nu2')
 
+nu_lum_flux = (nu0_lum_flux, nu1_lum_flux, nu2_lum_flux)
 nu_lum = (nu0_lum, nu1_lum, nu2_lum)
 nu_nlum = (nu0_nlum, nu1_nlum, nu2_nlum)
 nu_e = (nu0_e, nu1_e, nu2_e)
