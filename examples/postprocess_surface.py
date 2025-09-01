@@ -111,7 +111,8 @@ ej_s = np.array((1, 1.3, 1.8, 2.4, 3.2, 4.2, 5.6, 7.5, 10, 13, 18, 24,
 ej_tau = np.array((0.1, 0.17, 0.29, 0.49, 0.84, 1.4, 2.4, 4.2, 7.1, 12,
     21, 35, 59, 100, 170, 290, 500))
 
-ejecta_bins = tuple(make_bin_from_centers(ej) for ej in (ej_ye, ej_s, ej_tau))
+ejecta_bins = tuple(make_bin_from_centers(ej)
+                    for ej in (ej_ye, ej_s, ej_tau/msol_to_ms))
 
 ################################################################################
 
@@ -217,4 +218,4 @@ if args.ejecta:
         hf['mass'] = mass
         hf['Ye'] = ej_ye
         hf['entropy'] = ej_s
-        hf['tau'] = ej_tau/msol_to_ms
+        hf['tau'] = ej_tau
