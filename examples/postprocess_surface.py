@@ -16,9 +16,9 @@ from surface import surface_func as sf
 parser = argparse.ArgumentParser(
     description="Postprocessing for surface outputs"
 )
-parser.add_argument("-E", "--eos", default=None, type=str,
-                    help="EOS table in pycompose format")
 parser.add_argument("simpath", type=str, help="Path to simulation")
+parser.add_argument("-b", "--batchtools",  action="store_true",
+                    help="assume batchtools subdirectory structure (output-0000...)")
 parser.add_argument("-o", "--outputpath", default=None,
                     help="Directory to output to")
 parser.add_argument("-s", "--isurf", default=1, type=int,
@@ -34,17 +34,19 @@ parser.add_argument("-g", "--histograms",  nargs="*", default=[], type=str,
                           " Choices: vinf or any dataset name in the files"))
 parser.add_argument("-w", "--weighted_averages",  nargs="*", default=[], type=str,
                     help=("Weighted average time series to calculate. "
-                          " Choices: vinf or any dataset name in the files"))
+                          " Choices: vinf, th, ph, tau or any dataset name in the files"))
 parser.add_argument("-m", "--mass_ejection", action="store_true",
                     help="Calculate masse ejection rate")
 parser.add_argument("-l", "--nu_luminosities", action="store_true",
                     help="Calculate neutrino luminosities")
 parser.add_argument("-e", "--nu_energies", action="store_true",
                     help="Calculate neutrino energies")
-parser.add_argument("-b", "--backtrack_temp", type=float, default=8.0,
+parser.add_argument("-t", "--backtrack_temp", type=float, default=5.0,
                     help="Temperature for backtracking in GK. Default=8")
 parser.add_argument("-y", "--ejecta", action="store_true",
                     help="Create ejecta.h5 for use with tabulated yields")
+parser.add_argument("-E", "--eos", default=None, type=str,
+                    help="EOS table in pycompose format")
 parser.add_argument("-n", "--ncpu", default=1, type=int,
                     help="Number of cores to use")
 parser.add_argument("-v", "--verbose", action="store_true",
@@ -60,9 +62,12 @@ os.makedirs(args.outputpath, exist_ok=True)
 
 ################################################################################
 
-paths = [f"{args.simpath}/{d}" for d in os.listdir(args.simpath)
-         if (os.path.isdir(f"{args.simpath}/{d}")
-             and d.startswith("output-"))]
+if args.batchtools:
+    paths = [f"{args.simpath}/{d}" for d in os.listdir(args.simpath)
+             if (os.path.isdir(f"{args.simpath}/{d}")
+                 and d.startswith("output-"))]
+else:
+    paths = [args.simpath]
 
 temp_bt = args.backtrack_temp / 11.60452
 
