@@ -150,7 +150,7 @@ for crit in args.criteria:
         surf_funcs[f"sc_mdot_{crit}"] = sf.mdot(crit=cr, out=out)
     for f in args.weighted_averages:
         _f = _check_extra(f, crit)
-        surf_funcs[f"sc_mdot_{f}_{crit}"] = sf.mdot(weights=_f, crit=cr, out=out)
+        surf_funcs[f"sc_mdot_{f}_{crit}"] = sf.mdot(weight=_f, crit=cr, out=out)
     for f in args.histograms:
         _f = _check_extra(f, crit)
         surf_funcs[f"hist_{f}_{crit}"] = sf.mass_histogram(_f, out=out, crit=cr, bins=bins[f])
