@@ -51,6 +51,11 @@ parser.add_argument("-n", "--ncpu", default=1, type=int,
                     help="Number of cores to use")
 parser.add_argument("-v", "--verbose", action="store_true",
                     help="Print progress")
+parser.add_argument("--t_min", type=float, default=None,
+                    help="Minimum time taken into account in analysis")
+parser.add_argument("--t_max", type=float, default=None,
+                    help="Maximum time taken into account in analysis")
+
 args = parser.parse_args()
 
 if args.outputpath is None:
@@ -78,6 +83,8 @@ s = Surfaces(
     n_cpu=args.ncpu,
     verbose=args.verbose,
     eos_path=args.eos,
+    t_min=args.t_min,
+    t_max=args.t_max,
     )
 dt = s.times[1] - s.times[0]
 

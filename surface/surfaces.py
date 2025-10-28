@@ -19,13 +19,17 @@ class Surfaces(Mapping):
         i_radius: int,
         n_cpu: int = 1,
         verbose: bool = False,
-        eos_path: None | str = None
+        eos_path: None | str = None,
+        t_min: None | float = None,
+        t_max: None | float = None,
         ):
         self.paths = paths
         self.i_s = int(i_surface)
         self.i_r = int(i_radius)
         self.n_cpu = n_cpu
         self.verbose = verbose
+        self.t_min = t_min
+        self.t_max = t_max
         if eos_path is None:
             self.eos = None
         else:
@@ -69,6 +73,14 @@ class Surfaces(Mapping):
         _, isort = np.unique(np.round(times, 8), return_index=True)
         self.files = self.files[isort]
         self.times = np.array(times)[isort]
+
+        time_mask = np.ones_like(self.files, dtype=bool)
+        if self.t_min is not None:
+            time_mask = time_mask & (self.times > self.t_min)
+        if self.t_max is not None:
+            time_mask = time_mask & (self.times <= self.t_max)
+        self.times = self.times[time_mask]
+        self.files = self.files[time_mask]
 
         # dt should be step centered but sum up to total time
         # so we weight start and end times only by factor 1/2

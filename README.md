@@ -22,5 +22,6 @@ python examples/postprocess_surface.py \
     --histograms vinf hydro.aux.T hydro.aux.s passive_scalars.r_0 tau ph th \
     --weighted_averages vinf hydro.aux.T hydro.aux.s passive_scalars.r_0 tau ph th \
     --ejecta --eos=<path/to/EOS/file> \
+    --t_min=<minimum_time> --t_max=<maximum_time> \
     --outputpath <path/to/output>
 ```
