@@ -346,6 +346,29 @@ def get_many(funcs: Iterable[SurfaceFunc]):
 
 ################################################################################
 
+def _hut(h: Scalar, u_t: Scalar, eos: PyCompOSEEOS):
+    return h/eos.get_hinf() * u_t
+
+def hut(eos):
+    return SurfaceFunc(_hut, ('hydro.aux.h', 'hydro.aux.u_t'), "h u_t", eos=eos)
+
+def _h_eos(Q1: Scalar, Q7: Scalar) -> Scalar:
+    return 1 + Q1 + Q7
+
+def _hut_eos(rho: Scalar, temp: Scalar, ye: Scalar, u_t: Scalar, eos: PyCompOSEEOS):
+    h = eos.get_caller(['Q1', 'Q7'], _h_eos)(rho=rho, temp=temp, ye=ye)
+    return h/eos.get_hinf() * u_t
+
+def hut_eos(eos):
+    return SurfaceFunc(
+        _hut_eos,
+        ('hydro.prim.rho', 'hydro.aux.T', 'passive_scalars.r_0'),
+        "h u_t",
+        eos=eos,
+        )
+
+################################################################################
+
 def _ut(c: str) -> str:
     if c.startswith('bernoulli'):
         return 'hydro.aux.hu_t'
@@ -359,7 +382,14 @@ def _vinf(ut: Scalar) -> Scalar:
     vinf[mask] = np.sqrt(1 - ut[mask]**-2)
     return vinf
 
-vinf = {c: SurfaceFunc(_vinf, (_ut(c),), 'vinf_b') for c in ("bernoulli", "geodesic")}
+vinf = {c: SurfaceFunc(_vinf, (_ut(c),), f'vinf_{c[0]}') for c in ("bernoulli", "geodesic")}
+
+def vinf_bern_eos(eos: PyCompOSEEOS) -> DerivedSurfaceFunc[Scalar]:
+    return DerivedSurfaceFunc(_vinf, (hut_eos(eos),), 'vinf_b_eos')
+
+def vinf_bern_min(eos: PyCompOSEEOS) -> DerivedSurfaceFunc[Scalar]:
+    return DerivedSurfaceFunc(_vinf, (hut(eos),), 'vinf_b_min')
+
 
 ################################################################################
 

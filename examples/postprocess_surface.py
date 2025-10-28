@@ -130,7 +130,11 @@ ejecta_bins = tuple(make_bin_from_centers(ej)
 
 def _check_extra(f: str, crit: str) -> str | sf.SurfaceFunc:
         if f == "vinf":
-            if "bernoulli" in crit:
+            if "bernoulli_min" in crit:
+                return sf.vinf_min(s.eos)
+            elif "bernoulli_eos" in crit:
+                return sf.vinf_eos(s.eos)
+            elif "bernoulli" in crit:
                 return sf.vinf["bernoulli"]
             return sf.vinf["geodesic"]
         if f == "tau":
@@ -144,6 +148,8 @@ surf_funcs = {}
 ut = {
     "none": None,
     "bernoulli": "hydro.aux.hu_t",
+    "bernoulli_min": sf.hut,
+    "bernoulli_eos": sf.hut_eos,
     "geodesic": "hydro.aux.u_t",
     }
 
