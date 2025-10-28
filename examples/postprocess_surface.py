@@ -148,8 +148,8 @@ surf_funcs = {}
 ut = {
     "none": None,
     "bernoulli": "hydro.aux.hu_t",
-    "bernoulli_min": sf.hut,
-    "bernoulli_eos": sf.hut_eos,
+    "bernoulli_min": sf.hut(s.eos),
+    "bernoulli_eos": sf.hut_eos(s.eos),
     "geodesic": "hydro.aux.u_t",
     }
 

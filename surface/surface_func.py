@@ -352,7 +352,7 @@ def _hut(h: Scalar, u_t: Scalar, eos: PyCompOSEEOS):
 def hut(eos):
     return SurfaceFunc(_hut, ('hydro.aux.h', 'hydro.aux.u_t'), "h u_t", eos=eos)
 
-def _h_eos(Q1: Scalar, Q7: Scalar) -> Scalar:
+def _h_eos(Q1: Scalar, Q7: Scalar, *_, **__) -> Scalar:
     return 1 + Q1 + Q7
 
 def _hut_eos(rho: Scalar, temp: Scalar, ye: Scalar, u_t: Scalar, eos: PyCompOSEEOS):
@@ -362,7 +362,7 @@ def _hut_eos(rho: Scalar, temp: Scalar, ye: Scalar, u_t: Scalar, eos: PyCompOSEE
 def hut_eos(eos):
     return SurfaceFunc(
         _hut_eos,
-        ('hydro.prim.rho', 'hydro.aux.T', 'passive_scalars.r_0'),
+        ('hydro.prim.rho', 'hydro.aux.T', 'passive_scalars.r_0', 'hydro.aux.u_t'),
         "h u_t",
         eos=eos,
         )
